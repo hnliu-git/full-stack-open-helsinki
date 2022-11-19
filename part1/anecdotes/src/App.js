@@ -16,6 +16,7 @@ const App = () => {
   )
 
   const [selected, setSelected] = useState(0)
+  // not necessary according to the sample answer
   const [mostVoteIndex, setMostVoteIndex] = useState(0)
 
   const nextHandler = () => {
@@ -28,10 +29,8 @@ const App = () => {
     setVotes(copy)
 
     let indexTmp = 0
-    let numTmp = 0
     for (let i = 0; i < copy.length; i ++){
-      if (numTmp < copy[i]){
-        numTmp = copy[i]
+      if (copy[indexTmp] < copy[i]){
         indexTmp = i
       }
     }
