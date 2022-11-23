@@ -26,9 +26,6 @@ const App = () => {
       <CountryInfo filter={filter} countries={countries}/>
     </div>
   )
-
-
-  return <h1>Helloworld</h1>
 }
 
 export default App
