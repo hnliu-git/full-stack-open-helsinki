@@ -3,14 +3,16 @@ import personService from './services/persons'
 import Filter from './components/filter'
 import PersonForm from './components/personform'
 import Persons from './components/persons'
+import Notificaiton from './components/notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filterName, setFilterName] = useState('')
+  const [message, setMessage] = useState(null)
+  const [notifyStyle, setStyle] = useState({})
   
-
   useEffect(() => {
     personService
       .getAll()
@@ -31,19 +33,35 @@ const App = () => {
         .update(thePerson.id, changedPerson)
         .then(response => {
           setPersons(persons.map(p => p.id !== thePerson.id ? p : response))
+          setStyle({color: 'green'})
+          setMessage(`Updated ${thePerson.name}`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          setStyle({color: 'red'})
+          setMessage(`Information of ${thePerson.name} has already been removed from server`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
         })
       }
     } else {
       const personObj = {
         name: newName,
         number: newNumber,
-        // id: persons.length + 1
       }
 
       personService
       .create(personObj)
       .then(returnedPerson => {
         setPersons(persons.concat(returnedPerson))
+        setMessage(`Added ${newName}`)
+        setStyle({color: 'green'})
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
       })
     }
 
@@ -54,6 +72,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notificaiton message={message} style={notifyStyle}/>
       <Filter 
         filterName={filterName}
         onChange={(event) => setFilterName(event.target.value)}
