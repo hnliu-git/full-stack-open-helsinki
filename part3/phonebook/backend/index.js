@@ -26,22 +26,9 @@ let persons = [
     }
 ]
 
+app.use(express.static('build'))
 app.use(express.json())
 
-// const requestLogger = morgan((tokens, req, res) => {
-//   const hasBody = Object.keys(req.body).length;
-//   return [
-//     tokens.method(req, res),
-//     tokens.url(req, res),
-//     tokens.status(req, res),
-//     tokens.res(req, res, 'content-length'),
-//     '-',
-//     tokens['response-time'](req, res),
-//     'ms',
-//     hasBody ? JSON.stringify(req.body) : null,
-//   ].join(' ');
-// });
-// app.use(morgan('tiny'));
 morgan.token('type', function (req, res) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :type'))
 
@@ -116,7 +103,7 @@ app.post('/api/persons', (req, res) => {
   res.json(person)
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
