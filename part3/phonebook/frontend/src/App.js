@@ -41,7 +41,7 @@ const App = () => {
         })
         .catch(error => {
           setStyle({color: 'red'})
-          setMessage(`Information of ${thePerson.name} has already been removed from server`)
+          setMessage(error.response.data['error'])
           setTimeout(() => {
             setMessage(null)
           }, 5000)
@@ -59,6 +59,12 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setMessage(`Added ${newName}`)
         setStyle({color: 'green'})
+        setTimeout(() => {
+          setMessage(null)
+        }, 5000)
+      }).catch(error => {
+        setStyle({color: 'red'})
+        setMessage(error.response.data.error)
         setTimeout(() => {
           setMessage(null)
         }, 5000)
