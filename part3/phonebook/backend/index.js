@@ -1,6 +1,5 @@
 require('dotenv').config()
 
-const { response } = require('express')
 const express = require('express')
 const morgan = require('morgan')
 const Person = require('./models/person')
@@ -10,7 +9,7 @@ app.use(express.static('build'))
 app.use(express.json())
 
 // morgan logger
-morgan.token('type', function (req, res) { return JSON.stringify(req.body) })
+morgan.token('type', function (req) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :type'))
 
 app.get('/', (req, res) => {
@@ -28,13 +27,13 @@ app.get('/info', (req, res) => {
     res.send(`
       <p>Phonebook has info for ${persons.length} people</p>
       <p>${new Date()}</p>
-  `);
+  `)
   })
 })
 
 app.delete('/api/persons/:id', (req, res, nxt) => {
   Person.findByIdAndRemove(req.params.id)
-    .then(result => {
+    .then(() => {
       res.status(204).end()
     })
     .catch(error => nxt(error))
@@ -50,7 +49,7 @@ app.get('/api/persons/:id', (req, res, nxt) => {
       res.status(404).end()
     }
   })
-  .catch(error => nxt(error))
+    .catch(error => nxt(error))
 })
 
 app.put('/api/persons/:id', (req, res, nxt) => {
@@ -61,7 +60,8 @@ app.put('/api/persons/:id', (req, res, nxt) => {
     number: body.number
   }
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true})
+  Person.findByIdAndUpdate(req.params.id, person,
+    { new: true, runValidators: true, context: 'query' })
     .then(updatedNote => {
       res.json(updatedNote)
     })
@@ -69,12 +69,12 @@ app.put('/api/persons/:id', (req, res, nxt) => {
 })
 
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, nxt) => {
   const body = req.body
 
   if (!body.name) {
-    return res.status(400).json({ 
-      error: 'name missing' 
+    return res.status(400).json({
+      error: 'name missing'
     })
   }
 
@@ -84,14 +84,24 @@ app.post('/api/persons', (req, res) => {
     })
   }
 
+  Person.find({ name: body.name }).then( person => {
+    if (person === null) {
+      return res.status(400).json({
+        error: 'person already exists'
+      })
+    }
+  }).catch(error => nxt(error))
+
   const person = new Person({
     name: body.name,
     number: body.number
   })
 
-  person.save().then(savedPerson => {
-    res.json(savedPerson)
-  })
+  person.save()
+    .then(savedPerson => {
+      res.json(savedPerson)
+    })
+    .catch(error => nxt(error))
 
 })
 
@@ -106,7 +116,9 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } 
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 
   next(error)
 }

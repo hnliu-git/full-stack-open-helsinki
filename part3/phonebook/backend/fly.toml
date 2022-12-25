@@ -1,11 +1,12 @@
-# fly.toml file generated for ancient-star-423 on 2022-12-04T18:23:50+01:00
+# fly.toml file generated for bitter-dream-9119 on 2022-12-18T13:21:56+01:00
 
-app = "ancient-star-423"
+app = "bitter-dream-9119"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
 
 [env]
+  PORT = "8080"
 
 [experimental]
   allowed_public_ports = []
