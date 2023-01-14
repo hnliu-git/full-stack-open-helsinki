@@ -1,7 +1,20 @@
 
-# Overview
+# Overview on this part
 
-Understand the best-practice project structure and know how to setup test for Node backend
+This part talks about common backend application structure and how to test the backend app. And the later sections introduces how to add user administration to your app and how to authenticate user with token.
+
+# What you can do after it
+
+- You should be able to start a project with well-defined structure
+- You know how to test your backend app by validate its functions and requesting api
+  - Test function using `jest`
+  - Test API using `supertest` in a async style with proper initialization and post-processing
+- You know how to add basic user administration with username, password, and token
+- You understand middleware goal and know when to add one during development
+
+
+
+# Notes
 
 ## Project structure
 
@@ -14,6 +27,8 @@ Understand the best-practice project structure and know how to setup test for No
 │   └── ...
 ├── models
 │   └── ...
+|── tests
+│   └── ...
 ├── package-lock.json
 ├── package.json
 ├── utils
@@ -22,18 +37,28 @@ Understand the best-practice project structure and know how to setup test for No
 
 Explanations
 - The index.js is the entrypoint and load app from app.js
+- The app.js setup database, middleware, and routers
 - Route handlers are moved into /controllers
 - In models/, we define  the data model
 - In utils/, logger and middlewares are saved there
+- In tests/, you put all kinds of test script here
 
-## Setup jest
-
-Dependency
-```shell
-npm install --save-dev jest
+Inside router folder, you can define routers for different purposes
+```js
+const router = require('express').Router()
 ```
 
-In package.json
+## Testing your backend application
+
+### Library Setup
+
+If you want to use `.env` file configs , install [dotenv](https://www.npmjs.com/package/dotenv) and run the following ASAP
+```shell
+require('dotenv').config()
+```
+This line load all the `.env` into `process.env`
+
+Install jest library and update package.json
 ```json
 "scripts": {
     "test": "jest --verbose"
@@ -44,55 +69,30 @@ In package.json
 }
 ```
 
-Create files with format like 'xxx.test.js'. In it, we have:
-```js
-const reverse = require('../utils/for_testing').reverse
-
-test('reverse of a', () => {
-  const result = reverse('a')
-
-  expect(result).toBe('a')
-})
+The convention in Node is to define the execution mode of the application with the NODE_ENV environment variable. Next, let's change the scripts in our package.json so that when tests are run, NODE_ENV gets the value test:
+```json
+"scripts": {
+    "start": "NODE_ENV=production node index.js",
+    "dev": "NODE_ENV=development nodemon index.js",
+    "test": "NODE_ENV=test jest --verbose --runInBand"
+    // ...
+}
 ```
 
-Can also create a block of test
+## Testing Node by requesting API
+
+Use `supertest` library
 ```js
-describe('average', () => {
-  test('of one value is the value itself', () => {
-    expect(average([1])).toBe(1)
-  })
-
-  test('of many is calculated right', () => {
-    expect(average([1, 2, 3, 4, 5, 6])).toBe(3.5)
-  })
-
-  test('of empty array is zero', () => {
-    expect(average([])).toBe(0)
-  })
-})
+const api = supertest(app)
+await api.get()
+expect().toHaveLength()
 ```
 
-## From Promise to Async/Await
-- Sequential Promises could give birth to callback hell
-- ES7 introduce async syntax to make the code easier to understand
-
-FROM
+The `express-async-errors` library helps remove try...catch block. You just need to include it in `app.js`
 ```js
-notesRouter.get('/', async (request, response) => {
-  const notes = await Note.find({})
-  response.json(notes)
-})
+requrie('express-async-errors`)
 ```
 
-TO
-```js
-notesRouter.get('/', async (request, response) => {
-  const notes = await Note.find({})
-  response.json(notes)
-})
-```
+## User administration
 
-
-
-## Testing the backend
-
+`bcrypt` package is used for generating password hashes. `jsonwebtoken` is used for generating and verifying tokens.

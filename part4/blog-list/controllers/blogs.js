@@ -2,7 +2,8 @@ const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 
 blogsRouter.get('/', async (request, response) => {
-    const blogs = await Blog.find({})
+    const blogs = await Blog
+        .find({}).populate('user', { username: 1, name: 1, id: 1 })
     response.json(blogs)
 })
 
@@ -18,14 +19,36 @@ blogsRouter.put('/:id', async (request, response) => {
 })
 
 blogsRouter.post('/', async (request, response) => {
-    const blog = new Blog(request.body)
+    const body = request.body
+    const user = request.user
+    
+    const blog = new Blog({
+        title: body.title,
+        author: body.author,
+        url: body.url,
+        likes: body.likes,
+        user: user._id
+    })
+
     const result = await blog.save()
+    user.blogs = user.blogs.concat(result._id)
+    await user.save()
+
     response.status(201).json(result)
 })
 
 blogsRouter.delete('/:id', async (request, response) => {
-    await Blog.findByIdAndRemove(request.params.id)
-    response.status(204).end()
+    const user = request.user
+    const blog = await Blog.findById(request.params.id)
+
+    if ( blog.user.toString() === user._id.toString() ){
+        await blog.remove()
+        response.status(204).end()
+    } else {
+        response.status(401).json({
+            error: 'blog can only be deleted by the author'
+        })
+    }
 })
 
 module.exports = blogsRouter
