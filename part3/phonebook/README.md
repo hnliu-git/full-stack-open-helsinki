@@ -2,6 +2,15 @@
 
 This part a backend based on Express is compelted. The backend is connected to the MongoDB. The logic interact with the frontend and backend is finished. ESLint and Cloud deployment are also introduced in this part.
 
+# What you can do after it
+
+- You will know how to mock a request to your backend server
+- You understand how to build your frontend and deploy full-stack application to the Internet
+- You know how to create a Altas mongodb and interact with it
+- You know about linter and data schema validation
+
+
+# Notes
 ## Backend Development
 
 ### Libraries
