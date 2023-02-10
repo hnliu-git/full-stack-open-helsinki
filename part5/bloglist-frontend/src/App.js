@@ -2,13 +2,19 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import Notification from './components/Notification'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
+  const [newBlog, setNewBlog] = useState(null)
 
+  const [message, setMessage] = useState(null)
+  const [notifyStyle, setStyle] = useState({})
+
+  // check local storage
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
     if (loggedUserJSON){
@@ -18,6 +24,7 @@ const App = () => {
     }
   }, []) 
 
+  // get blogs if logined
   useEffect(() => {
     if (user){
       blogService.getAll().then(blogs =>
@@ -25,7 +32,17 @@ const App = () => {
       )  
     }
   }, [user])
+  
+  const updateNotification = ( msg, color ) => {
+    console.log(msg)
+    setMessage(msg)
+    setStyle({'color': color})
+    setTimeout(() => {
+      setMessage(null)
+    }, 5000)
+  }
 
+  // login logic
   const handleLogin = async (event) => {
     event.preventDefault()
     try {
@@ -40,7 +57,8 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch(expection){
-      console.log('Wrong credentials')
+      console.log(expection)
+      updateNotification('Wrong username or password', 'red')
     }
   }
 
@@ -53,6 +71,7 @@ const App = () => {
   const loginForm = () => (
     <div>
       <h2>log in to application</h2>
+      <Notification message={message} style={notifyStyle} />
       <form onSubmit={handleLogin}>
         <div>
           username
@@ -77,40 +96,60 @@ const App = () => {
     </div>
   )
 
+  // new blog logic
+  const handleBlogChange = (event) => {
+    setNewBlog({ ...newBlog, [event.target.name]: event.target.value })
+  }
+
+  const handleCreate = (event) => {
+    event.preventDefault()
+    try {
+      blogService
+        .create(newBlog)
+          .then(returnedBlog => {
+            setBlogs(blogs.concat(returnedBlog))
+            setNewBlog(null)
+            updateNotification(
+              `a new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
+              'green'
+            )
+          })
+    } catch(expection){
+      updateNotification(JSON.stringify(expection), 'red')
+    }
+  }
+
   const blogList = () => (
     <div>
       <h2>blogs</h2>
-      <div>
+      <Notification message={message} style={notifyStyle} />      <div>
         {user.username} logged in 
         <button onClick={handleLogout}>logout</button>
       </div>
-      <br/>
+      <h2>create new</h2>
       <form onSubmit={handleCreate}>
         <div>
           title 
           <input
             type="text"
-            value={title}
-            name="Title"
-            onChange={({ target }) => setUsername(target.value)}>
+            name="title"
+            onChange={handleBlogChange} required>
           </input>
         </div>
         <div>
           author
           <input
             type="text"
-            value={author}
-            name="Author"
-            onChange={({ target }) => setPassword(target.value)}>
+            name="author"
+            onChange={handleBlogChange} requried>
           </input>
         </div>
         <div>
           url
           <input
             type="text"
-            value={url}
-            name="Url"
-            onChange={}>
+            name="url"
+            onChange={handleBlogChange} required>
           </input>
         </div>
         <button type="submit">create</button>
