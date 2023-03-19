@@ -27,20 +27,20 @@ const App = () => {
       setUser(user)
       blogService.setToken(user.token)
     }
-  }, []) 
+  }, [])
 
   // get blogs if logined
   useEffect(() => {
     if (user){
       blogService.getAll().then(blogs =>
         setBlogs( blogs.sort((a, b) => b.likes - a.likes) )
-      )  
+      )
     }
   }, [user])
-  
+
   const updateNotification = ( msg, color ) => {
     setMessage(msg)
-    setStyle({'color': color})
+    setStyle({ 'color': color })
     setTimeout(() => {
       setMessage(null)
     }, 5000)
@@ -73,7 +73,7 @@ const App = () => {
 
   const likeBlog = async (id, likes) => {
     const blog = blogs.find(n => n.id === id)
-    const changedBlog = { ...blog, likes: likes}
+    const changedBlog = { ...blog, likes: likes }
 
     try {
       const returnedBlog = await blogService.update(id, changedBlog)
@@ -99,7 +99,7 @@ const App = () => {
   const addBlog = async (blogObject) => {
     try {
       const returnedBlog = await blogService.create(blogObject)
-      setBlogs(blogs.concat(returnedBlog).sort((a, b) => b.likes - a.likes)) 
+      setBlogs(blogs.concat(returnedBlog).sort((a, b) => b.likes - a.likes))
       updateNotification(
         `a new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
         'green'
@@ -130,25 +130,25 @@ const App = () => {
       {user &&
         <div>
           <div>
-            {user.username} logged in 
+            {user.username} logged in
             <button onClick={handleLogout}>logout</button>
           </div>
           <Togglable buttonLabel="create a blog" ref={blogFormRef}>
             <BlogForm
-                addBlog={addBlog} />
+              addBlog={addBlog} />
           </Togglable>
 
           <div>
             {blogs.map(blog =>
-              <Blog 
-                likeBlog={likeBlog} 
+              <Blog
+                likeBlog={likeBlog}
                 removeBlog={removeBlog}
-                key={blog.id} 
+                key={blog.id}
                 blog={blog} />
-                
+
             )}
           </div>
-        </div> 
+        </div>
       }
 
     </div>
